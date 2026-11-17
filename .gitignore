@@ -1,0 +1,22 @@
+# --- basis data / ekspor SQL TIDAK ikut di repo ---
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+dump/
+database/
+
+# --- data uji tambahan: default repo tetap data-tamu.csv ---
+data-tamu2.csv
+data-tamu2.js
+
+# --- berkas sementara pengujian (halaman bidik/screenshot otomatis) ---
+_*.html
+_*.py
+
+# --- berkas sistem & editor ---
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+node_modules/

@@ -1,0 +1,185 @@
+/* ==========================================================================
+   style-acara.css - TAMBAHAN DI LUAR SNIPPET (khusus halaman Edu Fair).
+   Berisi: warna tema acara, hero, timeline rundown, kartu booth, peta, form.
+   Snippet an-* tetap dipakai apa adanya di style.css.
+   ========================================================================== */
+
+/* --- warna tema: sekolah / career fair (menimpa variabel dari an-dasar) --- */
+:root {
+  --warna-utama: #1B3A5C;
+  --warna-utama-gelap: #10263D;
+  --warna-emas: #E0A03C;
+  --warna-krem: #FBF8F3;
+  --warna-garis: #E4DCD2;
+  --warna-teks: #22303C;
+  --warna-teks-lembut: #7A8794;
+  --font-judul: Georgia, "Times New Roman", serif;
+}
+
+body { background: var(--warna-krem); }
+body.kunci-gulir { overflow: hidden; }
+
+/* Navbar sekarang memakai .nav-pil dari snippet an-navbar. */
+
+/* --- hero acara --- */
+.hero-acara {
+  position: relative; overflow: hidden;
+  padding: clamp(56px, 10vh, 96px) 0 clamp(64px, 12vh, 112px);
+  background:
+    radial-gradient(circle at 15% 12%, rgba(224, 160, 60, .22), transparent 45%),
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, .10), transparent 40%),
+    linear-gradient(165deg, #1B3A5C 0%, #23496F 55%, #10263D 100%);
+  color: #fff;
+}
+.hero-acara .label-kecil { color: #F0C983; }
+.hero-acara h1 { font-size: clamp(2rem, 7vw, 3.6rem); margin: .18em 0 .1em; color: #fff; }
+.hero-acara .tema { font-size: clamp(.95rem, 2.4vw, 1.15rem); color: #D8E3EE; max-width: 46ch; margin-inline: auto; }
+.hero-acara .pita {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 999px; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, .35); color: #fff;
+}
+
+/* --- baris info singkat (tanggal / jam / tempat) --- */
+.info-cepat { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); margin-top: 28px; }
+.info-cepat .butir {
+  background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: var(--radius-kecil); padding: 14px 16px; font-size: .86rem; color: #EAF1F7;
+}
+.info-cepat .butir strong { display: block; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: #F0C983; margin-bottom: 4px; }
+
+/* --- rundown: garis waktu --- */
+.rundown { position: relative; margin: 0; padding: 0; list-style: none; }
+.rundown::before {
+  content: ""; position: absolute; left: 92px; top: 6px; bottom: 6px; width: 2px;
+  background: linear-gradient(var(--warna-emas), rgba(224, 160, 60, .15));
+}
+.rundown li { position: relative; display: grid; grid-template-columns: 78px 1fr; gap: 26px; padding: 0 0 22px; }
+.rundown li::before {
+  content: ""; position: absolute; left: 86px; top: 6px; width: 14px; height: 14px;
+  border-radius: 50%; background: #fff; border: 3px solid var(--warna-emas);
+}
+.rundown .jam { font-size: .82rem; font-weight: 700; color: var(--warna-utama); font-variant-numeric: tabular-nums; }
+.rundown .isi { padding-left: 18px; }
+.rundown .isi strong { display: block; font-family: var(--font-judul); font-size: 1.02rem; }
+.rundown .isi span { font-size: .86rem; color: var(--warna-teks-lembut); }
+@media (max-width: 560px) {
+  .rundown::before { left: 62px; }
+  .rundown li { grid-template-columns: 52px 1fr; gap: 18px; }
+  .rundown li::before { left: 56px; }
+}
+
+/* --- ikon SVG (tanpa emoji) --- */
+.ikon {
+  flex: none; width: 42px; height: 42px; border-radius: 13px;
+  display: grid; place-items: center;
+  background: #EEF3F8; color: var(--warna-utama);
+}
+.ikon svg { width: 22px; height: 22px; display: block; }
+.kartu-acara .ikon { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 14px; background: #F1F5F9; }
+
+/* --- kartu booth --- */
+.booth { display: grid; gap: clamp(14px, 2.4vw, 22px); grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.booth .item { display: flex; gap: 14px; align-items: flex-start; }
+.booth .ikon { border-radius: 12px; }
+.booth h4 { margin: 0 0 4px; font-family: var(--font-judul); font-size: 1rem; }
+.booth p { margin: 0; font-size: .86rem; color: var(--warna-teks-lembut); }
+
+/* --- peta lokasi (rasio tetap, responsif) --- */
+.peta-bingkai {
+  aspect-ratio: 16 / 9; width: 100%; border-radius: var(--radius);
+  overflow: hidden; border: 1px solid var(--warna-garis); box-shadow: var(--bayang);
+}
+.peta-bingkai iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* --- daftar benefit bergaris centang --- */
+.benefit { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.benefit li { display: flex; gap: 10px; font-size: .92rem; }
+.benefit li::before { content: "✓"; color: #1C7C4A; font-weight: 700; }
+
+/* --- form RSVP --- */
+.baris-dua { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+.form-kirim { margin-top: 4px; }
+
+/* --- kotak konfirmasi sukses (muncul setelah RSVP terkirim) --- */
+.konfirmasi { display: none; margin-top: 16px; }
+.konfirmasi.tampil { display: block; }
+
+/* --- footer acara --- */
+.footer-acara { background: var(--warna-utama-gelap); color: #D8E3EE; }
+.footer-acara p a:not(.btn), .footer-acara .kecil a { color: #fff; text-decoration: underline; }
+.footer-acara .kecil { color: #A9BBCB; }
+
+/* --- badge kategori tamu (dipakai index.html dan admin.html) --- */
+.badge-universitas { background: #E7EEF8; color: #1B3A5C; }
+.badge-perusahaan  { background: #FFF6E0; color: #8A6100; }
+.badge-alumni      { background: #E7F5EC; color: #1C7C4A; }
+.badge-siswa       { background: #F1ECE6; color: #6B5B4B; }
+
+/* --- admin: dropzone CSV + kotak cari --- */
+.dropzone {
+  display: block;                 /* <label> aslinya inline -> bikin border putus-putus tampak pecah */
+  cursor: pointer;
+  border: 2px dashed var(--warna-garis); border-radius: var(--radius);
+  padding: 26px 18px; text-align: center; background: #fff;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.dropzone:hover { border-color: var(--warna-emas); background: #FFFDF8; }
+.dropzone strong { display: block; margin-bottom: 4px; }
+.dropzone .status-baca { display: block; }
+.dropzone input[type="file"] { display: none; }
+.dropzone.aktif { border-color: var(--warna-emas); background: #FFFBF3; }
+.baris-alat { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.baris-alat .kolom-cari { flex: 1 1 220px; }
+.status-baca { font-size: .82rem; color: var(--warna-teks-lembut); }
+
+/* --- tabel admin tetap nyaman: aksi tidak berdesakan --- */
+.tabel .sel-link { max-width: 210px; }
+/* versi ringkas hanya untuk desktop; di HP tombol dibuat lebih besar (lihat an-tabel) */
+@media (min-width: 721px) {
+  .tabel .kolom-aksi .btn { min-height: 36px; padding: 7px 12px; font-size: .78rem; }
+}
+
+/* ==========================================================================
+   RESPONSIF KHUSUS HALAMAN ADMIN
+   Diukur pada lebar 320 / 360 / 390 / 414 / 480 px (iframe selebar HP).
+   ========================================================================== */
+
+/* tombol di bilah atas tidak boleh pecah dua baris */
+header .btn { white-space: nowrap; }
+
+@media (max-width: 560px) {
+  /* kotak cari + filter menumpuk full-width, bukan berdesakan */
+  .baris-alat { flex-direction: column; align-items: stretch; gap: 10px; }
+  .baris-alat > div { width: 100%; }
+  .baris-alat .kolom-cari { flex: 1 1 auto; }
+  .baris-alat .form-label { margin-bottom: 4px; }
+
+  /* unggah file: tetap bidang sentuh besar, tapi tidak boros ruang */
+  .dropzone { padding: 18px 12px; }
+
+  .tabel caption { font-size: .78rem; }
+  .status-baca { font-size: .78rem; }
+}
+
+@media (max-width: 420px) {
+  .kartu { padding: 16px; }
+  .stat-kartu { padding: 12px 14px; }
+  .stat-angka { font-size: 1.35rem; }
+  .stat-label { font-size: .72rem; }
+  .baris-dua { grid-template-columns: 1fr; }
+}
+
+/* di layar sentuh, tombol aksi dalam kartu tabel ikut lega */
+@media (hover: none) and (max-width: 720px) {
+  .tabel .kolom-aksi .btn { min-height: 46px; }
+}
+
+
+/* ==========================================================================
+   PERALIHAN LEMBUT SAAT UNDANGAN DIBUKA
+   Sampul memudar 0,8 detik; isi halaman masuk pelan bersamaan, jadi tidak
+   ada perubahan latar yang "seketika".
+   ========================================================================== */
+body.undangan-terbuka .hero-acara { animation: pudarMasuk .9s ease both; }
+body.undangan-terbuka .nav-pil { animation: pudarMasuk .9s ease both; }

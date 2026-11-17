@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Blast Undangan Edu Fair 2026</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-acara.css">
+</head>
+<body>
+
+  <!-- ===================== BILAH ATAS ===================== -->
+  <header style="background:var(--warna-utama);color:#fff">
+    <div class="container" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-block:14px">
+      <strong style="font-family:var(--font-judul);font-size:1.05rem">Admin Undangan &middot; Edu Fair 2026</strong>
+      <nav style="display:flex;gap:10px">
+        <a href="index.html" class="btn btn-kecil btn-garis" style="color:#fff;border-color:rgba(255,255,255,.6)">Lihat Undangan</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== RINGKASAN DATA ===================== -->
+  <section class="section" style="padding-block:26px">
+    <div class="container">
+      <div class="stat">
+        <div class="stat-kartu"><p class="stat-angka" id="stat-total">0</p><p class="stat-label">Total Tamu</p></div>
+        <div class="stat-kartu"><p class="stat-angka" id="stat-universitas">0</p><p class="stat-label">Universitas</p></div>
+        <div class="stat-kartu"><p class="stat-angka" id="stat-perusahaan">0</p><p class="stat-label">Perusahaan</p></div>
+        <div class="stat-kartu"><p class="stat-angka" id="stat-alumni">0</p><p class="stat-label">Alumni</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-block:0 56px">
+    <div class="container">
+
+      <!-- ============ MUAT DATA CSV ============ -->
+      <div class="grid grid-2" style="align-items:start;margin-bottom:24px">
+
+        <div class="kartu kartu-garis-atas">
+          <h3>1. Muat Data Tamu</h3>
+          <label class="dropzone" id="dropzone" for="file-csv">
+            <strong>Klik untuk pilih file CSV</strong>
+            <span class="status-baca">atau tarik file ke sini &middot; kolom: id, nama_tamu, instansi, kategori, no_whatsapp</span>
+            <input type="file" id="file-csv" accept=".csv,text/csv">
+          </label>
+          <p class="status-baca" id="status-baca" data-status="belum" style="margin-top:10px">Belum ada data dimuat.</p>
+          <button class="btn btn-kecil btn-garis" type="button" id="muat-contoh" style="margin-top:10px">Muat data-tamu.csv (contoh)</button>
+        </div>
+
+        <div class="kartu">
+          <h3>2. Template Pesan WhatsApp</h3>
+          <p class="kecil">Bisa memakai penanda: <code>{nama}</code> <code>{instansi}</code> <code>{kategori}</code> <code>{link}</code></p>
+          <textarea class="form-textarea" id="template-pesan" rows="6"></textarea>
+          <p class="kecil" id="contoh-pesan" style="margin-top:8px"></p>
+        </div>
+
+      </div>
+
+      <!-- ============ TABEL TAMU ============ -->
+      <div class="kartu kartu-datar tabel-kotak">
+        <div class="baris-alat">
+          <div class="kolom-cari">
+            <label class="form-label" for="cari">Cari nama / instansi</label>
+            <input class="form-input" type="search" id="cari" placeholder="Contoh: Telkom, Alumni, Rina">
+          </div>
+          <div>
+            <label class="form-label" for="filter-kategori">Kategori</label>
+            <select class="form-select" id="filter-kategori">
+              <option value="">Semua kategori</option>
+              <option value="Universitas">Universitas</option>
+              <option value="Perusahaan">Perusahaan</option>
+              <option value="Alumni">Alumni</option>
+            </select>
+          </div>
+        </div>
+
+        <table class="tabel" id="tabel-tamu">
+          <caption id="keterangan-tabel">Daftar tamu (0)</caption>
+          <thead>
+            <tr>
+              <th style="width:52px">ID</th>
+              <th>Nama Tamu</th>
+              <th>Instansi</th>
+              <th>Kategori</th>
+              <th>No. WhatsApp</th>
+              <th class="kolom-aksi">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="isi-tabel">
+            <tr><td colspan="6" class="kecil">Belum ada data. Muat file CSV dulu di kotak "1. Muat Data Tamu".</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="kecil" style="margin-top:14px">
+        Catatan: tautan WhatsApp dibuka di tab baru dan otomatis berisi pesan + link personalisasi tamu.
+        Web ini prototipe lokal - belum mengirim pesan secara otomatis (tidak ada API server).
+      </p>
+
+    </div>
+  </section>
+
+  <footer class="footer-acara" style="padding-block:26px">
+    <div class="container tengah kecil">
+      Panitia Edu Fair &amp; Career Day 2026 &middot; Admin lokal &middot; <a href="index.html">Kembali ke undangan</a>
+    </div>
+  </footer>
+
+  <script src="data-tamu.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
