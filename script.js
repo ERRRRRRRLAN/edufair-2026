@@ -24,7 +24,14 @@ document.addEventListener('DOMContentLoaded', function () {
   function bacaBagianNama() {
     var cocok = /[?&]nama=([^&]*)/.exec(window.location.search);
     if (!cocok) return null;
-    var mentah = cocok[1].split(',').map(function (bagian) {
+
+    // Pemisah standar = koma biasa. Kalau koma sudah di-encode jadi %2C
+    // (sebagian aplikasi pesan melakukan ini), tetap dibaca sebagai pemisah.
+    var mentah = cocok[1].indexOf(',') > -1
+      ? cocok[1].split(',')
+      : decodeURIComponent(cocok[1]).split(',');
+
+    mentah = mentah.map(function (bagian) {
       return decodeURIComponent(bagian.replace(/\+/g, ' ')).trim();
     });
     if (!mentah.length || mentah[0] === '') return null;
