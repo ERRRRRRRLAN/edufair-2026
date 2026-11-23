@@ -1,5 +1,8 @@
 # Web Undangan Edu Fair & Career Day 2026
 
+**Live:** https://errrrrrrlan.github.io/edufair-2026/  &nbsp;|&nbsp;  **Repo:** https://github.com/ERRRRRRRLAN/edufair-2026
+
+
 Purwarupa sistem undangan digital + blast WhatsApp, sesuai lembar soal ASAS Proyek RPL (XI).
 Semua berjalan **tanpa server database** - HTML, CSS, dan JavaScript murni.
 
