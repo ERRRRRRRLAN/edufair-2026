@@ -199,9 +199,18 @@ document.addEventListener('DOMContentLoaded', function () {
     return KONFIRMASI.dasar + '/' + KONFIRMASI.topik + (ekstra || '');
   }
 
+  // localStorage HANYA dipakai sebagai kotak surat sementara (belum terkirim),
+  // bukan riwayat tampilan. Jadi daftar di halaman selalu = isi penyimpanan bersama.
   function ambilLokal() {
     try {
-      return JSON.parse(localStorage.getItem('rsvp-edufair-2026') || '[]');
+      var semua = JSON.parse(localStorage.getItem('rsvp-edufair-2026') || '[]');
+      // hanya entri baru (ditandai _baru) yang dianggap kotak surat.
+      // entri lama dari versi sebelumnya dibuang supaya tidak terkirim ulang.
+      var kotak = semua.filter(function (x) { return x && x._baru === true; });
+      if (kotak.length !== semua.length) {
+        localStorage.setItem('rsvp-edufair-2026', JSON.stringify(kotak));
+      }
+      return kotak;
     } catch (err) {
       return [];
     }
@@ -209,12 +218,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function simpanLokal(data) {
     try {
+      data._baru = true;          // penanda: ini kotak surat, bukan riwayat lama
       var daftar = ambilLokal();
       daftar.push(data);
       localStorage.setItem('rsvp-edufair-2026', JSON.stringify(daftar));
     } catch (err) {
-      console.warn('Cadangan lokal tidak tersimpan:', err);
+      console.warn('Kotak surat lokal tidak tersimpan:', err);
     }
+  }
+
+  function kosongkanLokal() {
+    try {
+      localStorage.removeItem('rsvp-edufair-2026');
+    } catch (err) { /* diabaikan */ }
+  }
+
+  // coba kirim ulang yang masih tersimpan di perangkat (kalau tadi gagal jaringan)
+  function kirimYangTertunda() {
+    var tertunda = ambilLokal();
+    if (!tertunda.length) return Promise.resolve(0);
+
+    return tertunda.reduce(function (rantai, data) {
+      return rantai.then(function (berhasil) {
+        return kirimKonfirmasi(data).then(function () { return berhasil + 1; })
+                                      .catch(function () { return berhasil; });
+      });
+    }, Promise.resolve(0)).then(function (terkirim) {
+      if (terkirim === tertunda.length) kosongkanLokal();
+      return terkirim;
+    });
   }
 
   // kirim konfirmasi ke penyimpanan bersama
@@ -232,8 +264,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // baca semua konfirmasi, gabungkan dengan cadangan lokal, lalu gambar
   function muatKonfirmasi() {
-    var daftar = ambilLokal();
     var terhubung = false;
+    var tertunda = ambilLokal().length;
 
     return fetch(alamatTopik('/json?poll=1&since=all'), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.text() : ''; })
@@ -253,16 +285,8 @@ document.addEventListener('DOMContentLoaded', function () {
           })
           .filter(function (x) { return x && x.nama; });
 
-        // gabung: utamakan yang dari topik, tambah yang hanya ada di perangkat ini
-        var kunci = {};
-        var gabung = [];
-        [].concat(dariTopik, daftar).forEach(function (d) {
-          var id = d._id || (d.nama + '|' + d.kehadiran + '|' + (d.pesan || ''));
-          if (kunci[id]) return;
-          kunci[id] = true;
-          gabung.push(d);
-        });
-
+        // daftar = isi penyimpanan bersama saja (tanpa riwayat lama di perangkat)
+        var gabung = dariTopik.slice();
         gabung.sort(function (a, b) {
           var ta = a._waktu ? a._waktu : Date.parse(a.waktu || 0) / 1000;
           var tb = b._waktu ? b._waktu : Date.parse(b.waktu || 0) / 1000;
@@ -275,12 +299,16 @@ document.addEventListener('DOMContentLoaded', function () {
           status.textContent = dariTopik.length
             ? 'Terhubung ke daftar bersama (' + dariTopik.length + ' konfirmasi).'
             : 'Terhubung ke daftar bersama - belum ada konfirmasi.';
+          if (tertunda) status.textContent += ' ' + tertunda + ' konfirmasi menunggu terkirim dari perangkat ini.';
         }
       })
       .catch(function () {
-        gambarKonfirmasi(daftar);
+        gambarKonfirmasi([]);
         var status = document.getElementById('status-simpan');
-        if (status) status.textContent = 'Mode luring: konfirmasi tersimpan di perangkat ini dulu.';
+        if (status) {
+          status.textContent = 'Mode luring: konfirmasi tersimpan di perangkat ini dulu'
+            + (tertunda ? ' (' + tertunda + ' menunggu terkirim).' : '.');
+        }
       });
   }
 
@@ -369,16 +397,17 @@ document.addEventListener('DOMContentLoaded', function () {
       var kotak = document.getElementById('konfirmasi');
       var status = document.getElementById('status-simpan');
 
-      simpanLokal(data);                    // langsung aman di perangkat ini
-      gambarKonfirmasi(ambilLokal());       // tampil segera
+      simpanLokal(data);                    // simpan dulu ke kotak surat perangkat
 
       kirimKonfirmasi(data)
         .then(function () {
+          kosongkanLokal();                 // sudah masuk daftar bersama
           if (status) status.textContent = 'Tersimpan ke daftar bersama.';
           return muatKonfirmasi();
         })
         .catch(function () {
-          if (status) status.textContent = 'Gagal kirim ke daftar bersama - tersimpan di perangkat ini saja.';
+          if (status) status.textContent = 'Gagal kirim ke daftar bersama - tersimpan di perangkat ini dulu.';
+          return muatKonfirmasi();
         });
 
       document.getElementById('konfirmasi-nama').textContent = data.nama;
@@ -388,8 +417,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // muat pertama + perbarui tiap 15 detik supaya konfirmasi orang lain ikut terlihat
-    muatKonfirmasi();
-    setInterval(muatKonfirmasi, 15000);
+    kirimYangTertunda().then(muatKonfirmasi);
+    setInterval(function () { kirimYangTertunda().then(muatKonfirmasi); }, 15000);
   }
 
   // ------------------------------------------------------------------
