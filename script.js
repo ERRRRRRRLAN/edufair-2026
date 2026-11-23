@@ -184,10 +184,154 @@ document.addEventListener('DOMContentLoaded', function () {
   setInterval(perbaruiHitungMundur, 1000);
 
   // ------------------------------------------------------------------
-  // 4. FORM RSVP
-  //    Prototipe tanpa server: data disimpan di localStorage browser.
-  //    Kalau nanti ada backend, tinggal ganti isi fungsi simpanRsvp().
+  // 4. FORM RSVP + DAFTAR KONFIRMASI BERSAMA
+  //    Penyimpanan bersama memakai ntfy.sh (tanpa akun, tanpa server sendiri).
+  //    Setiap konfirmasi dikirim sebagai satu pesan JSON ke topik di bawah,
+  //    lalu halaman undangan membaca topik itu dan menampilkan semuanya.
+  //    Cadangan: localStorage, dipakai kalau jaringan bermasalah.
   // ------------------------------------------------------------------
+  var KONFIRMASI = {
+    dasar: 'https://ntfy.sh',
+    topik: 'edufair2026-konfirmasi-erlan-7f3a9'
+  };
+
+  function alamatTopik(ekstra) {
+    return KONFIRMASI.dasar + '/' + KONFIRMASI.topik + (ekstra || '');
+  }
+
+  function ambilLokal() {
+    try {
+      return JSON.parse(localStorage.getItem('rsvp-edufair-2026') || '[]');
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function simpanLokal(data) {
+    try {
+      var daftar = ambilLokal();
+      daftar.push(data);
+      localStorage.setItem('rsvp-edufair-2026', JSON.stringify(daftar));
+    } catch (err) {
+      console.warn('Cadangan lokal tidak tersimpan:', err);
+    }
+  }
+
+  // kirim konfirmasi ke penyimpanan bersama
+  function kirimKonfirmasi(data) {
+    var ke = alamatTopik();
+    return fetch(ke, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(data)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return true;
+    });
+  }
+
+  // baca semua konfirmasi, gabungkan dengan cadangan lokal, lalu gambar
+  function muatKonfirmasi() {
+    var daftar = ambilLokal();
+
+    return fetch(alamatTopik('/json?poll=1&since=all'), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (teks) {
+        var dariTopik = teks.split('\n').filter(function (b) { return b.trim() !== ''; })
+          .map(function (b) {
+            try {
+              var isi = JSON.parse(b);
+              var data = JSON.parse(isi.message);
+              data._id = isi.id;
+              data._waktu = isi.time;
+              return data;
+            } catch (err) {
+              return null;                 // pesan uji/asing diabaikan
+            }
+          })
+          .filter(function (x) { return x && x.nama; });
+
+        // gabung: utamakan yang dari topik, tambah yang hanya ada di perangkat ini
+        var kunci = {};
+        var gabung = [];
+        [].concat(dariTopik, daftar).forEach(function (d) {
+          var id = d._id || (d.nama + '|' + d.kehadiran + '|' + (d.pesan || ''));
+          if (kunci[id]) return;
+          kunci[id] = true;
+          gabung.push(d);
+        });
+
+        gabung.sort(function (a, b) {
+          var ta = a._waktu ? a._waktu : Date.parse(a.waktu || 0) / 1000;
+          var tb = b._waktu ? b._waktu : Date.parse(b.waktu || 0) / 1000;
+          return tb - ta;
+        });
+
+        gambarKonfirmasi(gabung);
+        var status = document.getElementById('status-simpan');
+        if (status) status.textContent = dariTopik.length
+          ? 'Terhubung ke daftar bersama (' + dariTopik.length + ' konfirmasi).'
+          : 'Mode luring: konfirmasi tersimpan di perangkat ini dulu.';
+      })
+      .catch(function () {
+        gambarKonfirmasi(daftar);
+        var status = document.getElementById('status-simpan');
+        if (status) status.textContent = 'Mode luring: konfirmasi tersimpan di perangkat ini dulu.';
+      });
+  }
+
+  function gambarKonfirmasi(daftar) {
+    var wadah = document.getElementById('daftar-konfirmasi');
+    if (!wadah) return;
+
+    var hitung = { Hadir: 0, 'Tidak Hadir': 0, Ragu: 0, orang: 0 };
+    daftar.forEach(function (d) {
+      if (hitung[d.kehadiran] !== undefined) hitung[d.kehadiran]++;
+      if (d.kehadiran === 'Hadir') hitung.orang += parseInt(d.jumlah, 10) || 1;
+    });
+
+    var set = function (id, nilai) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = nilai;
+    };
+    set('stat-hadir', hitung.Hadir);
+    set('stat-tidak', hitung['Tidak Hadir']);
+    set('stat-ragu', hitung.Ragu);
+    set('stat-orang', hitung.orang);
+    set('jumlah-konfirmasi', '(' + daftar.length + ' konfirmasi)');
+
+    if (!daftar.length) {
+      wadah.innerHTML = '<p class="kecil">Belum ada konfirmasi. Jadilah yang pertama.</p>';
+      return;
+    }
+
+    wadah.innerHTML = daftar.map(function (d) {
+      var kehadiran = d.kehadiran || 'Ragu';
+      var kelas = kehadiran === 'Hadir' ? 'hadir' : (kehadiran === 'Tidak Hadir' ? 'tidak' : 'ragu');
+      var inisial = (d.nama || '?').trim().charAt(0).toUpperCase();
+      var waktu = d._waktu ? new Date(d._waktu * 1000) : new Date(d.waktu || Date.now());
+      var tanggal = waktu.toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      var tambahan = d.instansi ? '<span class="kecil">' + aman(d.instansi) + '</span>' : '';
+
+      return '<div class="kartu-ucapan">' +
+        '<div class="baris-atas">' +
+          '<span class="nama"><span class="avatar">' + aman(inisial) + '</span>' + aman(d.nama) + '</span>' +
+          '<span class="badge badge-' + kelas + '">' + aman(kehadiran) +
+            (parseInt(d.jumlah, 10) > 1 ? ' ' + aman(String(d.jumlah)) + ' orang' : '') + '</span>' +
+        '</div>' +
+        (d.pesan ? '<p class="isi">' + aman(d.pesan) + '</p>' : '') +
+        tambahan +
+        '<span class="waktu">' + tanggal + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function aman(teks) {
+    return String(teks == null ? '' : teks)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   var form = document.getElementById('form-rsvp');
   if (form) {
     // isi otomatis dari parameter URL supaya tamu tidak mengetik ulang
@@ -218,26 +362,30 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      simpanRsvp(data);
-
       var kotak = document.getElementById('konfirmasi');
+      var status = document.getElementById('status-simpan');
+
+      simpanLokal(data);                    // langsung aman di perangkat ini
+      gambarKonfirmasi(ambilLokal());       // tampil segera
+
+      kirimKonfirmasi(data)
+        .then(function () {
+          if (status) status.textContent = 'Tersimpan ke daftar bersama.';
+          return muatKonfirmasi();
+        })
+        .catch(function () {
+          if (status) status.textContent = 'Gagal kirim ke daftar bersama - tersimpan di perangkat ini saja.';
+        });
+
       document.getElementById('konfirmasi-nama').textContent = data.nama;
       kotak.classList.add('tampil');
       kotak.scrollIntoView({ behavior: 'smooth', block: 'center' });
       form.reset();
     });
-  }
 
-  function simpanRsvp(data) {
-    try {
-      var kunci = 'rsvp-edufair-2026';
-      var daftar = JSON.parse(localStorage.getItem(kunci) || '[]');
-      daftar.push(data);
-      localStorage.setItem(kunci, JSON.stringify(daftar));
-    } catch (err) {
-      // localStorage bisa diblokir (mode privat); jangan sampai form gagal total
-      console.warn('Konfirmasi tidak tersimpan:', err);
-    }
+    // muat pertama + perbarui tiap 15 detik supaya konfirmasi orang lain ikut terlihat
+    muatKonfirmasi();
+    setInterval(muatKonfirmasi, 15000);
   }
 
   // ------------------------------------------------------------------
