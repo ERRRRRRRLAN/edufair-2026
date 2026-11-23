@@ -70,7 +70,8 @@ document.addEventListener('DOMContentLoaded', function () {
       'universitas': 'badge-universitas',
       'perusahaan': 'badge-perusahaan',
       'alumni': 'badge-alumni',
-      'siswa': 'badge-siswa'
+      'siswa': 'badge-siswa',
+      'guru': 'badge-guru'
     };
     var kunci = kategori.toLowerCase();
     elKategori.className = 'badge ' + (kelas[kunci] || 'badge-netral');

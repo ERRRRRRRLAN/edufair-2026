@@ -223,7 +223,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var kelasKategori = {
     'universitas': 'badge-universitas',
     'perusahaan': 'badge-perusahaan',
-    'alumni': 'badge-alumni'
+    'alumni': 'badge-alumni',
+    'guru': 'badge-guru'
   };
 
   function gambarTabel() {

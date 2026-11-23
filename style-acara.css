@@ -115,6 +115,7 @@ body.kunci-gulir { overflow: hidden; }
 .badge-perusahaan  { background: #FFF6E0; color: #8A6100; }
 .badge-alumni      { background: #E7F5EC; color: #1C7C4A; }
 .badge-siswa       { background: #F1ECE6; color: #6B5B4B; }
+.badge-guru        { background: #EFE9F7; color: #4B3B8F; }
 
 /* --- admin: dropzone CSV + kotak cari --- */
 .dropzone {
