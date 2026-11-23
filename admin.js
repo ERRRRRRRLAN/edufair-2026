@@ -181,12 +181,22 @@ document.addEventListener('DOMContentLoaded', function () {
   // 3. LINK PERSONALISASI + PESAN WHATSAPP
   // ------------------------------------------------------------------
   function linkUndangan(tamu) {
-    var dasar = window.location.href.replace(/admin\.html.*$/, 'index.html');
-    var q = new URLSearchParams();
-    q.set('to', tamu.nama_tamu || 'Tamu Undangan');
-    q.set('kategori', tamu.kategori || 'Peserta');
-    if (tamu.instansi) q.set('instansi', tamu.instansi);
-    return dasar + '?' + q.toString();
+    // dasar tautan dihitung dari lokasi berkas, jadi tetap benar
+    // walau halaman admin diganti nama atau ditaruh di subfolder
+    var dasar = new URL('index.html', window.location.href).href;
+
+    // nama + gelar dipisah: "Dr. Rina Kusumawati, M.Pd." -> nama & gelar
+    var bagianNama = String(tamu.nama_tamu || '').split(',');
+    var namaDasar = (bagianNama[0] || '').trim();
+    var gelar = bagianNama.length > 1 ? bagianNama.slice(1).join(',').trim() : '';
+
+    // urutan tetap: nama, gelar, instansi, kategori
+    // koma di dalam satu bagian ditulis %2C supaya tidak dianggap pemisah
+    var isi = [namaDasar, gelar, tamu.instansi || '', tamu.kategori || '']
+      .map(function (x) { return encodeURIComponent(x); })
+      .join(',');
+
+    return dasar + '?nama=' + isi;
   }
 
   function pesanUntuk(tamu, link) {

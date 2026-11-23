@@ -42,7 +42,7 @@ lalu buka `http://127.0.0.1:8090/index.html`
 | Peta lokasi (Google Maps embed) | `#lokasi` - `<iframe>` `output=embed` |
 | Rundown acara | `#rundown` - daftar `.rundown` (garis waktu) |
 | Daftar benefit booth | `#booth` - kartu `.booth` |
-| Personalisasi `?to=...&kategori=...` | `script.js` fungsi `URLSearchParams` (bagian 1) |
+| Personalisasi `?nama=nama,gelar,instansi,kategori` | `script.js` bagian 1 (`bacaBagianNama()`) |
 | CSV minimal 5 data | `data-tamu.csv` (7 baris) |
 | Baca CSV via FileReader | `admin.js` - `#file-csv` + `FileReader.readAsText()` |
 | Tabel daftar tamu di admin | `admin.html` `#tabel-tamu` + `admin.js` `gambarTabel()` |
@@ -50,12 +50,29 @@ lalu buka `http://127.0.0.1:8090/index.html`
 
 ## Contoh tautan personalisasi
 
+Cara utama satu parameter, dipisah koma, urutannya **nama, gelar, instansi, kategori**:
+
 ```text
-index.html?to=Universitas+Negeri&kategori=Universitas&instansi=Universitas+Negeri+Jakarta
-index.html?to=Budi+Santoso%2C+S.Kom.&kategori=Perusahaan&instansi=PT+Telkom+Indonesia
+index.html?nama=Dr.%20Rina%20Kusumawati,M.Pd.,Universitas%20Indonesia,Universitas
+index.html?nama=Budi%20Santoso,S.Kom.,PT%20Telkom%20Indonesia,Perusahaan
 ```
 
-Nama pada layar sampul, badge kategori, dan judul tab otomatis menyesuaikan.
+Aturan pembacaan (di `script.js`):
+
+| Jumlah bagian | Dianggap sebagai |
+| --- | --- |
+| 4 | nama, gelar, instansi, kategori |
+| 3 | nama, gelar, instansi |
+| 2 | nama, gelar |
+| 1 | nama saja |
+
+Koma **di dalam** satu bagian harus ditulis `%2C`, contoh gelar ganda:
+`index.html?nama=Rina%20Kusumawati,S.E.%2C%20M.Pd.,Universitas%20Al%20Azhar%20Indonesia,Universitas`
+-> tampil "Rina Kusumawati, S.E., M.Pd."
+
+Cara lama tetap didukung: `?to=Nama&instansi=...&kategori=...` (juga `&gelar=`).
+
+Hasil yang tampil: nama + gelar di layar sampul dan judul tab, instansi di bawah nama, badge berwarna sesuai kategori.
 Tanpa parameter, tampil sebagai "Tamu Undangan".
 
 ## Catatan teknis (berguna saat ditanya penguji)

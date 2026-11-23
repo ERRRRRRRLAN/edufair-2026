@@ -11,20 +11,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ------------------------------------------------------------------
   // 1. PERSONALISASI DARI URL
-  //    contoh: index.html?to=Universitas+Negeri&kategori=Kampus&instansi=UI
-  //    URLSearchParams otomatis mengubah tanda + menjadi spasi.
+  //    Cara utama (satu parameter, dipisah koma):
+  //      index.html?nama=Raka Pratama,S.Kom.,PT Telkom Indonesia,Perusahaan
+  //      urutan: nama, gelar, instansi, kategori
+  //    Cara lama tetap jalan: ?to=..&instansi=..&kategori=..
+  //    Catatan: koma DI DALAM satu bagian harus ditulis %2C,
+  //    contoh gelar ganda -> "Rina Kusumawati,S.E.%2C M.Pd.,Universitas Indonesia,Universitas"
   // ------------------------------------------------------------------
   var params = new URLSearchParams(window.location.search);
-  var nama = (params.get('to') || '').trim();
-  var kategori = (params.get('kategori') || '').trim();
-  var instansi = (params.get('instansi') || '').trim();
+
+  // dibaca dari query mentah supaya koma pemisah dan koma di dalam teks tidak tertukar
+  function bacaBagianNama() {
+    var cocok = /[?&]nama=([^&]*)/.exec(window.location.search);
+    if (!cocok) return null;
+    var mentah = cocok[1].split(',').map(function (bagian) {
+      return decodeURIComponent(bagian.replace(/\+/g, ' ')).trim();
+    });
+    if (!mentah.length || mentah[0] === '') return null;
+
+    var hasil = { nama: mentah[0], gelar: '', instansi: '', kategori: '' };
+
+    if (mentah.length >= 4) {
+      // nama & gelar bisa mengandung koma, jadi dua bagian TERAKHIR = instansi & kategori
+      hasil.kategori = mentah[mentah.length - 1];
+      hasil.instansi = mentah[mentah.length - 2];
+      hasil.gelar = mentah.slice(1, mentah.length - 2).join(', ');
+    } else if (mentah.length === 3) {
+      hasil.gelar = mentah[1];
+      hasil.instansi = mentah[2];
+    } else if (mentah.length === 2) {
+      hasil.gelar = mentah[1];
+    }
+    return hasil;
+  }
+
+  var dariNama = bacaBagianNama();
+  var nama = dariNama ? dariNama.nama : (params.get('to') || '').trim();
+  var gelar = dariNama ? dariNama.gelar : (params.get('gelar') || '').trim();
+  var kategori = dariNama ? dariNama.kategori : (params.get('kategori') || '').trim();
+  var instansi = dariNama ? dariNama.instansi : (params.get('instansi') || '').trim();
+  var namaLengkap = gelar !== '' ? nama + ', ' + gelar : nama;
 
   var elNama = document.getElementById('nama-tamu');
   var elKategori = document.getElementById('kategori-tamu');
   var elInstansi = document.getElementById('instansi-tamu');
 
   // kalau parameter kosong, pakai teks umum supaya undangan tetap layak dilihat
-  if (elNama) elNama.textContent = nama !== '' ? nama : 'Tamu Undangan';
+  if (elNama) elNama.textContent = namaLengkap !== '' ? namaLengkap : 'Tamu Undangan';
   if (elKategori) elKategori.textContent = kategori !== '' ? kategori : 'Peserta';
   if (elInstansi) {
     elInstansi.textContent = instansi !== '' ? instansi : 'Instansi / Universitas';
@@ -44,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // judul tab ikut nama tamu (enak dilihat saat link dibuka di HP)
-  if (nama !== '') document.title = 'Undangan untuk ' + nama + ' - Edu Fair 2026';
+  if (namaLengkap !== '') document.title = 'Undangan untuk ' + namaLengkap + ' - Edu Fair 2026';
 
   // ------------------------------------------------------------------
   // 2. TOMBOL BUKA UNDANGAN
@@ -150,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var form = document.getElementById('form-rsvp');
   if (form) {
     // isi otomatis dari parameter URL supaya tamu tidak mengetik ulang
-    if (nama !== '' && document.getElementById('r-nama')) document.getElementById('r-nama').value = nama;
+    if (namaLengkap !== '' && document.getElementById('r-nama')) document.getElementById('r-nama').value = namaLengkap;
     if (instansi !== '' && document.getElementById('r-instansi')) document.getElementById('r-instansi').value = instansi;
     if (kategori !== '' && document.getElementById('r-kategori')) {
       var pilih = document.getElementById('r-kategori');
