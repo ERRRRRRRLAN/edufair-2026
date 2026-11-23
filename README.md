@@ -142,3 +142,13 @@ Cara mencegah di Excel:
 4. **Navbar pil mengambang** (`an-navbar`): `position: fixed`, radius 999px, kaca buram (backdrop blur), mengecil halus saat halaman digulir (`.nav-pil-padat`, transisi 0,35 detik) dan menandai bagian yang sedang dibaca.
 5. **Buka undangan halus**: sampul memudar 0,8 detik sambil isinya naik sedikit (`translateY(-14px) scale(1.02)`), halaman dikunci tidak bisa digulir selama sampul terbuka, dan **tidak ada lompatan gulir** setelahnya.
 6. **Scroll reveal CSS murni**: `.reveal` dan `.reveal-isi` memakai `animation-timeline: view()`, jadi elemen muncul pelan saat masuk layar tanpa JavaScript.
+
+
+## Konfirmasi kehadiran (daftar bersama) & cara mengosongkannya
+
+Konfirmasi dikirim sebagai pesan JSON ke topik gratis **ntfy.sh** (tanpa akun), lalu dibaca ulang oleh halaman undangan setiap 15 detik.
+
+- Nama topik diatur di `script.js` pada `var KONFIRMASI = { dasar, topik }`.
+- **Mengosongkan daftar**: ganti nilai `topik` dengan nama baru (contoh `edufair2026-konfirmasi-bersih-3c91d7` -> `...-v2-8f21`). Topik baru otomatis kosong; pesan lama tidak bisa dihapus karena ntfy.sh tidak menyediakan penghapusan untuk tamu anonim.
+- Kalau jaringan gagal, konfirmasi disimpan di `localStorage` perangkat dan status di bawah daftar memberi tahu.
+- Pesan di ntfy.sh bertahan **12 jam**; untuk arsip permanen pakai basis data (mis. tabel Supabase).

@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ------------------------------------------------------------------
   var KONFIRMASI = {
     dasar: 'https://ntfy.sh',
-    topik: 'edufair2026-konfirmasi-erlan-7f3a9'
+    topik: 'edufair2026-konfirmasi-bersih-3c91d7'   // ganti nama topik = daftar mulai kosong lagi
   };
 
   function alamatTopik(ekstra) {
@@ -233,10 +233,12 @@ document.addEventListener('DOMContentLoaded', function () {
   // baca semua konfirmasi, gabungkan dengan cadangan lokal, lalu gambar
   function muatKonfirmasi() {
     var daftar = ambilLokal();
+    var terhubung = false;
 
     return fetch(alamatTopik('/json?poll=1&since=all'), { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.text() : ''; })
       .then(function (teks) {
+        terhubung = true;
         var dariTopik = teks.split('\n').filter(function (b) { return b.trim() !== ''; })
           .map(function (b) {
             try {
@@ -269,9 +271,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         gambarKonfirmasi(gabung);
         var status = document.getElementById('status-simpan');
-        if (status) status.textContent = dariTopik.length
-          ? 'Terhubung ke daftar bersama (' + dariTopik.length + ' konfirmasi).'
-          : 'Mode luring: konfirmasi tersimpan di perangkat ini dulu.';
+        if (status) {
+          status.textContent = dariTopik.length
+            ? 'Terhubung ke daftar bersama (' + dariTopik.length + ' konfirmasi).'
+            : 'Terhubung ke daftar bersama - belum ada konfirmasi.';
+        }
       })
       .catch(function () {
         gambarKonfirmasi(daftar);
